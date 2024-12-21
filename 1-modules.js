@@ -1,3 +1,4 @@
+const { log } = require('node:console');
 const names=require('./2-names');
 const sayhi=require('./3-utils');
 // console.log(names)
