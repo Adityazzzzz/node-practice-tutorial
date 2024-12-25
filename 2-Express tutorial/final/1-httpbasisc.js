@@ -21,7 +21,5 @@ const server =http.createServer((req,res)=>{
         res.write('<h1>error</h1>')
         res.end()
     }
-
-    
 })
 server.listen(5000)
