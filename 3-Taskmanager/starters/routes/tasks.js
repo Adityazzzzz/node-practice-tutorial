@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {getitems, createitems,getsingleitems,updateitems,deleteitems } = require('../controllers/task.js');
+const {getitems, createitems,getsingleitems,updateitems,deleteitems } = require('../controllers/tasks');
 
 router.get('/', getitems); // GET / -> Fetch all items
 router.post('/', createitems); // POST / -> Create an item

@@ -1,13 +1,13 @@
-const TASK= require('../models/task')
+const Task= require('../models/Task')
 
 //1
 const getitems =async (req, res) => {
     try{
-        const task= await TASK.find({}) /************   imp ************/
-        res.status(201).json({task:task});
+        const tasks= await Task.find({}) /************   imp ************/
+        res.status(201).json({ tasks });
     } 
     catch(error){
-        res.status(500).json({msg:error})
+        res.status(500).json({ msg: error})
     }
 };
 
@@ -15,7 +15,7 @@ const getitems =async (req, res) => {
 //2
 const createitems =async(req, res) => {
     try{
-        const task= await TASK.create(req.body)  /************   imp ************/
+        const task= await Task.create(req.body)  /************   imp ************/
         res.status(201).json({task});
     }
     catch(error){
@@ -28,13 +28,13 @@ const createitems =async(req, res) => {
 const getsingleitems = async(req, res) => {
     try {
         const {id: taskID} = req.params
-        const task=await TASK.findOne({_id:taskID}) /************   imp ************/
+        const tasks=await Task.findOne({_id:taskID}) /************   imp ************/
 
-        if(!task){
+        if(!tasks){
             return res.status(404).json({msg:`no task with ${taskID}`})
         }
 
-        res.status(201).json({ task });
+        res.status(201).json({ tasks });
     } 
     catch (error) {
         res.status(500).json({msg:error})
@@ -46,9 +46,9 @@ const getsingleitems = async(req, res) => {
 const updateitems = async(req, res) => {
     try{
         const {id: taskID} = req.params
-        const task=await TASK.findOneAndUpdate( {_id:taskID}, req.body, {new: true, runValidators:true})/******   imp ******/
+        const tasks=await Task.findOneAndUpdate( {_id:taskID}, req.body, {new: true, runValidators:true})/******   imp ******/
 
-        if(!task){
+        if(!tasks){
             return res.status(404).json({msg:`no task with ${taskID}`})
         }
 
@@ -64,9 +64,9 @@ const updateitems = async(req, res) => {
 const deleteitems = async(req, res) => {
     try {
         const {id: taskID} = req.params
-        const task=await TASK.findOneAndDelete({_id:taskID}) /************   imp ************/
+        const tasks=await Task.findOneAndDelete({_id:taskID}) /************   imp ************/
 
-        if(!task){
+        if(!tasks){
             return res.status(404).json({msg:`no task with ${taskID}`})
         }
         res.status(201).json({ type:null, sucess:1 });
