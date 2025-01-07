@@ -1,12 +1,34 @@
 const Product = require('../models/product')
 
-const getallproductstatic= (req,res)=>{
-    // throw new Error('testing')
-    res.status(201).json({msg:"all static products"})
+
+const getallproductstatic= async(req,res)=>{
+    const search ='ab';
+    const products= await Product.find({
+        name:{ $regex: search, $options: 'i'},
+    });
+    res.status(200).json({products})
 }
-const getallproducts= (req,res)=>{
-    res.status(201).json({msg:"all products"})
-}
+
+
+const getallproducts = async (req, res) => {
+    const {featured,company ,name } =req.query;
+    const queryobj ={};
+
+    if (featured) {
+        queryobj.featured = featured === 'true'? true: false;
+    }
+    if(company){
+        queryobj.company= company
+    }
+    if(name){
+        queryobj.name={ $regex:name, $options: 'i'}
+    }
+    console.log(queryobj)
+    const products = await Product.find(queryobj);
+    res.status(200).json({ products });
+};
+module.exports={getallproductstatic,getallproducts}
+
 
 // const createproducts= (req,res)=>{
 //     res.send('created product')
@@ -20,5 +42,3 @@ const getallproducts= (req,res)=>{
 // const deleteproducts= (req,res)=>{
 //     res.send('delete products')
 // }
-
-module.exports={getallproducts,getallproductstatic}

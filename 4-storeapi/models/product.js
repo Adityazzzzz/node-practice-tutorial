@@ -9,7 +9,7 @@ const productschema= new mongoose.Schema({
         type:Number,
         required:[true,`Product name is required`]
     },
-    feature:{
+    featured:{
         type:Boolean,
         default:false
     },
@@ -25,8 +25,9 @@ const productschema= new mongoose.Schema({
         type: String,
         enum: {
           values: ['ikea', 'liddy', 'caressa', 'marcos'],
-        }   
-    } 
+          message: '{VALUE} is not supported',
+        },
+    }, 
 
 })
 module.exports= mongoose.model('Product',productschema)

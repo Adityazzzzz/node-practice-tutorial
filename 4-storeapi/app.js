@@ -16,11 +16,11 @@ app.use('/api/v1/products',products)
 app.use(notfound)
 app.use(errmiddleware)
 
-const PORT= 5000;
+const port = process.env.PORT || 5000;
 const start=async()=>{
     try {
         await connectDB(process.env.MONGO_URI)
-        app.listen(PORT)
+        app.listen(port)
     } 
     catch(error){
         console.log(error);      
