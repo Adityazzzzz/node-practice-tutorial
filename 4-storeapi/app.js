@@ -6,13 +6,14 @@ const connectDB= require('./db/connect')
 require('dotenv').config();
 require('express-async-errors')
 const products=require('./route/products')
-
+const data =require('./products.json')
 //middleware
 // app.use(express.static())
 app.use(express.json())
 
 
 app.use('/api/v1/products',products)
+
 app.use(notfound)
 app.use(errmiddleware)
 
