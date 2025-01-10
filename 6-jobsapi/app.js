@@ -4,17 +4,24 @@ require('dotenv').config();
 require('express-async-errors');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
+const connectDB= require('./db/connect')
+const jobs= require('./routes/jobs')
+const auth= require('./routes/auth')
 
 
 app.use(express.json());
 
+app.use('/api/v1/jobs',jobs)
+app.use('/api/v1/auth',auth)
+
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-const port = process.env.PORT || 5000;
 
+const port = process.env.PORT || 5000;
 const start = async () => {
-  try {
+  try{
+    await connectDB(process.env.MONGO_URL)
     app.listen(port)
   } 
   catch(error){
