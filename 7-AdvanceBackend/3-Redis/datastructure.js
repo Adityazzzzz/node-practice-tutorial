@@ -54,7 +54,31 @@ async function RedisDS() {
 
 
 
-        // 4.Sorted sets -> zAdd, zRange, zRank, zRem
+        // 4.Sorted sets(priority queue) -> zAdd, zRange, zRank, zRem
+        await client.zAdd("cart", [
+            {
+                score: 100,
+                value: "Cart 1",
+            },
+            {
+                score: 150,
+                value: "Cart 2",
+            },
+            {
+                score: 10,
+                value: "Cart 3",
+            },
+        ]);
+
+        const getCartItems = await client.zRange("cart", 0, -1);
+
+        const extractAllCartItemsWithScore = await client.zRangeWithScores("cart",0,-1);
+
+        const cartTwoRank = await client.zRank("cart", "Cart 2");
+
+
+
+
 
         // 5.Hash ->  hSET, hGET, hGETALL, hDEL
         await client.hSet("product:1", {
