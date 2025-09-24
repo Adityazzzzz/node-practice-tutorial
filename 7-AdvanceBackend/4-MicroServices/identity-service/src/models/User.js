@@ -39,10 +39,6 @@ userSchema.pre('save',async function(next){
     }
 })
 
-userSchema.methods.createJWT = function(){
-    return jwt.sign({userId:this._id, name:this.name}, process.env.JWT_SECRET, {expiresIn:process.env.JWT_LIFETIME})
-}
-
 
 userSchema.method.comparePassword = async function(candidatepassword){
     const isMatch = await argon2.verify(candidatepassword,this.password)
