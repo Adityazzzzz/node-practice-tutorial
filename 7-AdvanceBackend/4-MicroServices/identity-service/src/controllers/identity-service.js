@@ -1,5 +1,6 @@
 const RefreshToken = require("../models/RefreshToken");
 const User = require("../models/User");
+const generateTokens = require("../utils/generateToken");
 
 const logger = require('../utils/logger')
 const {validateRegistration} = require('../utils/validation')
@@ -35,8 +36,13 @@ const userRegister = async(req,res)=>{
         logger.warn('User saved successfully',user._id)
 
 
-
-
+        const {accessToken,refreshToken} = await generateTokens(user)
+        res.status(201).json({
+            success:true, 
+            message:'User registered successfully', 
+            refreshToken,
+            accessToken
+        })
 
 
     } 
@@ -44,3 +50,7 @@ const userRegister = async(req,res)=>{
         return {status:404}
     }
 }
+
+
+
+module.exports = {userRegister}
