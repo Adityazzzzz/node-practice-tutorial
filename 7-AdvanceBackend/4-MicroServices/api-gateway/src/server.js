@@ -45,3 +45,39 @@ app.use((req, res, next) => {
     logger.info(`Request body, ${req.body}`);
     next();
 });
+
+
+// -----------------------------------------------------------------------------------------
+const proxyOptions = {
+    proxyReqPathResolver : (req)=>{
+        return req.original.urlreplace(/^\/v1/,'/api')
+    },
+    proxyErrorHandler: (err,res,next)=>{
+        logger.error(`Proxy error: ${err.message}`);
+        res.status(500).json({
+            message: `Internal server error`,
+            error: err.message,
+        });     
+    },
+}
+app.use('/v1/auth',proxy(process.env.IDENTITY_SERVICE_URL,{
+    ...proxy,
+    proxyReqOptDecorator : (proxyReqOpts,srcReq)=>{
+        proxyReqOpts.headers['Content-Type'] = 'application/json'
+        return proxyReqOpts
+    },
+    userResDecorator : (proxyRes,proxyResData,userReq,userRes) => {
+        logger.info(`Response received from Identity service: ${proxyRes.statusCode}`)
+        return proxyResData
+    }
+}));
+// -----------------------------------------------------------------------------------------
+
+
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+    logger.info(`API Gateway is running on port ${PORT}`);
+    logger.info(`Identity service is running on port ${process.env.IDENTITY_SERVICE_URL}`);
+    logger.info(`Redis Url ${process.env.REDIS_URL}`);
+});
