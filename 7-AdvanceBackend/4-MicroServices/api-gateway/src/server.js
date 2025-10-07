@@ -15,7 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const redisClient = new Redis(process.env.REDIS_URL);
 
-const rateLimiter = rateLimit({
+const rateLimiterOptions = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
     standardHeaders: true,
@@ -37,7 +37,7 @@ const rateLimiter = rateLimit({
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(rateLimiter);
+app.use(rateLimiterOptions);
 
 
 app.use((req, res, next) => {
@@ -60,8 +60,8 @@ const proxyOptions = {
         });     
     },
 }
-app.use('/v1/auth',proxy(process.env.IDENTITY_SERVICE_URL,{
-    ...proxy,
+app.use('/v1/auth',proxy(process.env.IDENTITY_SERVICE_URL,{  // proxy for identity service
+    ...proxyOptions,
     proxyReqOptDecorator : (proxyReqOpts,srcReq)=>{
         proxyReqOpts.headers['Content-Type'] = 'application/json'
         return proxyReqOpts
@@ -71,6 +71,27 @@ app.use('/v1/auth',proxy(process.env.IDENTITY_SERVICE_URL,{
         return proxyResData
     }
 }));
+
+
+app.use("/v1/posts",validateToken,proxy(process.env.POST_SERVICE_URL,{
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      proxyReqOpts.headers["Content-Type"] = "application/json";
+      proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+
+      return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      logger.info(
+        `Response received from Post service: ${proxyRes.statusCode}`
+      );
+
+      return proxyResData;
+    },
+  
+}));
+
+
 // -----------------------------------------------------------------------------------------
 
 
