@@ -1,5 +1,18 @@
 const Post = require('../models/Post')
 const logger = require('../utils/logger')
+const {validateCreatePost} =  require("../utils/validation")
+
+
+async function invalidatePostCache(req,input){
+    const cachedKey = `post:${input}`;
+    await req.redisClient.del(cachedKey);
+
+    const keys = await req.redisClient.keys("posts:*");
+    if(keys.length>0){
+        await req.redisClient.del(keys)
+    }
+}
+
 
 const createPost = async(req,res)=>{
     try {
@@ -10,6 +23,9 @@ const createPost = async(req,res)=>{
             mediaIds: mediaIds||[],
         })
         await newlycreatedPost.save()
+
+        await invalidatePostCache(req, newlycreatedPost._id.toString());
+
         logger.info('post created successfully',newlycreatedPost)
         res.status(201).json({
             success: true,
@@ -69,7 +85,25 @@ const getAllPost = async(req,res)=>{
 
 const getPost = async(req,res)=>{
     try {
-        
+        const postId = req.params.id
+        const cacheKey = `posts:${postId}`
+        const cachedPost = await req.redisClient.get(cacheKey)
+         
+        if(cachedPost){
+            return res.json(JSON.parse(cachedPost))
+        }
+
+        const singlePostDetailsbyId = await Post.findById(postId);
+
+        if (!singlePostDetailsbyId) {
+            return res.status(404).json({
+                message: "Post not found",
+                success: false,
+            });
+        }
+
+        await req.redisClient.setex(cachedPost,3600,JSON.stringify(singlePostDetailsbyId)); 
+        res.json(singlePostDetailsbyId);
     }
     catch(error){
         logger.error('Error fetching post', error)
@@ -82,7 +116,26 @@ const getPost = async(req,res)=>{
 
 const deletePost = async(req,res)=>{
     try {
-        
+        // only who created can delete
+        const post = await Post.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user.userId,
+        });
+        if(!post){
+            return res.status(404).json({
+                message: "Post not found",
+                success: false,
+            });
+        }
+
+        //publish post delete method 
+        await publishEvent("post.deleted",{
+            postId: post._id.toString(),
+            userId: req.user.userId,
+            mediaIds: post.mediaIds,
+        });
+        await invalidatePostCache(req, req.params.id);
+        res.json({message: "Post deleted successfully"});
     }
     catch(error){
         logger.error('Error deleting post', error)
@@ -93,5 +146,4 @@ const deletePost = async(req,res)=>{
     }
 }
 
-
-module.exports = {createPost,getAllPost}
+module.exports = {createPost,getAllPost,getPost,deletePost}
