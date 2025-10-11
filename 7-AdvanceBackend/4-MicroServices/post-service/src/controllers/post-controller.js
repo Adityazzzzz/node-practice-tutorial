@@ -28,7 +28,35 @@ const createPost = async(req,res)=>{
 
 const getAllPost = async(req,res)=>{
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startindex = (page-1)*limit;
+
+        const cacheKey = `posts:${page}:${limit}`
+        const cachedPost = await req.redisClient.get(cacheKey)
+         
+        if(cachedPost){
+            return res.json(JSON.parse(cachedPost))
+        }
+
+        const posts = await Post.find({})
+            .sort({createdAt:-1})
+            .skip(startindex)
+            .limit(limit)
+
+        const totalNoofPosts = await Post.countDocuments()
+
+        const result = {
+            posts,
+            currentPage : page,
+            totalPages : Math.ceil(totalNoofPosts/limit),
+            totalPosts : totalNoofPosts
+        }
         
+        // save to redis
+        await req.redisClient.setex(cacheKey,300,JSON.stringify(result))
+        
+        res.json(result);
     }
     catch(error){
         logger.error('Error fetching post', error)
@@ -66,4 +94,4 @@ const deletePost = async(req,res)=>{
 }
 
 
-module.exports = {createPost}
+module.exports = {createPost,getAllPost}
